@@ -184,7 +184,7 @@ class ProjectMakerCommand(sublime_plugin.WindowCommand):
         if len(matches) > 0:
             self.tokenized_files.append(file_path)
         for match in matches:
-            token = match[2:-1]
+            token = match[len(self.token_open_tag):-len(self.token_close_tag)]
             if not token in self.tokens:
                 self.tokens.append(token)
 
