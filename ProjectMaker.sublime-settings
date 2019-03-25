@@ -8,6 +8,8 @@
 
 	"token_close_tag" : "}}",
 
+	"hide_get_online_template": false,
+
 	"non_parsed_ext": [
 		".jpg", 
 		".jpeg",

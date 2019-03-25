@@ -25,6 +25,7 @@ class ProjectMakerCommand(sublime_plugin.WindowCommand):
         self.non_parsed_files = settings.get("non_parsed_files")
         self.token_open_tag = settings.get("token_open_tag")
         self.token_close_tag = settings.get("token_close_tag")
+        self.hide_get_online_template = settings.get("hide_get_online_template")
 
         self.existing_names = []
         self.plugin_path = os.path.join(sublime.packages_path(), "ProjectMaker")
@@ -37,7 +38,13 @@ class ProjectMakerCommand(sublime_plugin.WindowCommand):
         for file_name in files:
             if os.path.isdir(os.path.join(self.templates_path, file_name)):
                 self.template_names.append(file_name)
-        self.window.show_quick_panel(self.template_names, self.on_template_chosen)
+
+        choose_template_options = []
+        if self.hide_get_online_template:
+            choose_template_options = self.template_names
+        else:
+            choose_template_options = self.template_names + ["Get new templates from github..."]
+        self.window.show_quick_panel(choose_template_options, self.on_template_chosen)
 
     def get_templates(self):
         files = os.listdir(self.templates_path)
@@ -45,6 +52,11 @@ class ProjectMakerCommand(sublime_plugin.WindowCommand):
         return [f[1] for f in sorted(files)]
 
     def on_template_chosen(self, index):
+        # Last option selected
+        if index == len(self.template_names):
+            self.window.run_command("open_url",
+                {"url": "https://github.com/bit101/STProjectMaker-templates"})
+
         if index > -1:
             self.chosen_template_name = self.template_names[index]
             self.chosen_template_path = os.path.join(
