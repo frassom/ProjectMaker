@@ -13,13 +13,13 @@ class ProjectMakerCommand(sublime_plugin.WindowCommand):
         settings = sublime.load_settings("ProjectMaker.sublime-settings")
 
         # Load User/Default settings
-        self.templates_path = os.path.normpath(os.path.expanduser(settings.get('template_path')))
+        self.templates_path = os.path.normpath(os.path.expanduser(settings.get("template_path")))
         if not os.path.exists(self.templates_path):
             self.templates_path = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)), "Templates"
             )
         self.default_project_path = os.path.normpath(
-            os.path.expanduser(settings.get('default_project_path')))
+            os.path.expanduser(settings.get("default_project_path")))
         self.project_files_folder = settings.get("project_files_folder")
         self.non_parsed_ext = settings.get("non_parsed_ext")
         self.non_parsed_files = settings.get("non_parsed_files")
@@ -264,14 +264,17 @@ class ProjectMakerCommand(sublime_plugin.WindowCommand):
                         break
 
     def find_project_file(self):
-        files = os.listdir(self.project_path)
-        r = re.compile(r".*\.sublime-project")
-        self.project_file = None
-        for file_name in files:
-            if r.search(file_name):
-                self.project_file = os.path.join(self.project_path, file_name)
+        self.project_file = self.get_existing_project_file_path()
         if self.project_file is None:
             self.create_project_file()
+
+    # Return first match found (bottom up)
+    def get_existing_project_file_path(self):
+        for root, dirnames, filenames in os.walk(self.project_path):
+            for filename in filenames:
+                if filename.endswith(".sublime-project"):
+                    return os.path.join(root, filename)
+        return None
 
     def create_project_file(self):
         file_name = self.project_name + ".sublime-project"
