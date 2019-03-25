@@ -1,4 +1,13 @@
 {
+
+	"default_project_path" : "~/project_name",
+
+	"template_path": "~/ProjectMakerTemplates",
+
+	"token_open_tag" : "{{",
+
+	"token_close_tag" : "}}",
+
 	"non_parsed_ext": [
 		".jpg", 
 		".jpeg",
@@ -58,5 +67,6 @@
 	"non_parsed_files": [
 	    ".DS_Store",
 	    "build.xml"
-	]
+	],
+
 }

@@ -11,29 +11,25 @@ class ProjectMakerCommand(sublime_plugin.WindowCommand):
 
     def run(self):
         settings = sublime.load_settings("ProjectMaker.sublime-settings")
-        templates_path_setting = settings.get('template_path')
-        default_project_path_setting = settings.get('default_project_path')
-        if not default_project_path_setting:
-            self.default_project_path = os.path.normpath(os.path.expanduser("~/project_name"))
-        else:
-            self.default_project_path = os.path.normpath(os.path.expanduser(default_project_path_setting))
 
-        self.project_files_folder = settings.get('project_files_folder')
+        # Load User/Default settings
+        self.templates_path = os.path.normpath(os.path.expanduser(settings.get('template_path')))
+        if not os.path.exists(self.templates_path):
+            self.templates_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), "Templates"
+            )
+        self.default_project_path = os.path.normpath(
+            os.path.expanduser(settings.get('default_project_path')))
+        self.project_files_folder = settings.get("project_files_folder")
         self.non_parsed_ext = settings.get("non_parsed_ext")
         self.non_parsed_files = settings.get("non_parsed_files")
+        self.token_open_tag = settings.get("token_open_tag")
+        self.token_close_tag = settings.get("token_close_tag")
+
         self.existing_names = []
         self.plugin_path = os.path.join(sublime.packages_path(), "ProjectMaker")
-        if not templates_path_setting:
-            templates_path = os.path.expanduser("~/ProjectMakerTemplates")
-            if os.path.exists(templates_path):
-                self.templates_path = templates_path
-            else:
-                self.templates_path = os.path.join(
-                    os.path.dirname(os.path.abspath(__file__)), "Sample-Templates"
-                )
-        else:
-            self.templates_path = os.path.normpath(os.path.expanduser(templates_path_setting))
         self.template_names = []
+
         self.choose_template()
 
     def choose_template(self):
@@ -180,7 +176,10 @@ class ProjectMakerCommand(sublime_plugin.WindowCommand):
         if content is None:
             return
 
-        r = re.compile(r"\${[^}]*}")
+        re_match = (re.escape(self.token_open_tag) + r"[^" +
+                    re.escape(self.token_close_tag) + r"]*" +
+                    re.escape(self.token_close_tag))
+        r = re.compile(re_match)
         matches = r.findall(content)
         if len(matches) > 0:
             self.tokenized_files.append(file_path)
@@ -246,8 +245,10 @@ class ProjectMakerCommand(sublime_plugin.WindowCommand):
             return
 
         for token, value in self.token_values:
-            r = re.compile(r"\${" + token + "}")
+            re_match = re.escape(self.token_open_tag) + token + re.escape(self.token_close_tag)
+            r = re.compile(re_match)
             template = r.sub(value, template)
+
         file_ref = self.open_file(file_path, "w+", False)
         file_ref.write(template)
         file_ref.close()
